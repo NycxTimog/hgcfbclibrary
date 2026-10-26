@@ -19,9 +19,23 @@
     if (!el) return; el.className = `message ${type}`; el.textContent = message;
   }
   function hideMessage(el) { if (el) el.classList.add("hidden"); }
-  function fileRawUrl(path) {
-    return `https://raw.githubusercontent.com/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/${encodeURIComponent(cfg.branch || "main")}/${path.split("/").map(encodeURIComponent).join("/")}`;
-  }
+  
+function fileRawUrl(path) {
+  const isUserSite =
+    cfg.repo.toLowerCase() === `${cfg.owner}.github.io`.toLowerCase();
+
+  const repoPrefix = isUserSite
+    ? ""
+    : `${encodeURIComponent(cfg.repo)}/`;
+
+  const filePath = path
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/");
+
+  return `${location.origin}/${repoPrefix}${filePath}`;
+}
+
   async function listFolder(path) {
     const response = await fetch(`${apiRoot()}/contents/${path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(cfg.branch || "main")}`, {headers:{"Accept":"application/vnd.github+json"}});
     if (response.status === 404) return [];
