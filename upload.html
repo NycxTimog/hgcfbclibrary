@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#071426"><title>Upload a Chord Sheet — HGCFBC</title><link rel="stylesheet" href="assets/styles.css"></head>
+<body data-page="upload">
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">HG</span><span><strong>HGCFBC</strong><small>CHORDS LIBRARY</small></span></a><button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button><nav class="nav-links"><a href="index.html">Home</a><a href="guitar-keyboard.html">Guitar / Keyboard</a><a href="saxophone.html">Saxophone</a><a class="nav-upload active" href="upload.html">＋ Upload</a></nav></header>
+<main class="page-shell upload-shell">
+  <div class="page-heading"><div><div class="eyebrow"><span class="live-dot"></span> CONTRIBUTE TO THE LIBRARY</div><h1>Upload a <span>chord sheet.</span></h1><p>Add a chart to the shared repository for the worship team.</p></div></div>
+  <section class="upload-layout">
+    <div class="upload-main panel">
+      <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose or drop files"><div class="drop-icon">↑</div><strong>Drop your file here</strong><p>or <button type="button" id="browseBtn" class="inline-link">browse files</button></p><small>PDF, JPG, or PNG · Maximum 10 MB per file</small><input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" hidden></div>
+      <div id="selectedFile" class="selected-file hidden"></div>
+      <label class="field-label" for="categorySelect">Destination folder</label>
+      <select id="categorySelect" class="field-control"><option value="guitar-keyboard">Guitar / Keyboard — chords/guitar-keyboard/</option><option value="saxophone">Saxophone — chords/saxophone/</option></select>
+      <div id="destinationPreview" class="path-preview"><span>↳</span><code>chords/guitar-keyboard/</code></div>
+      <div class="form-actions"><button id="clearSelectionBtn" class="button button-quiet" type="button">Clear selection</button><button id="reviewUploadBtn" class="button button-primary" type="button" disabled>Review upload <span>→</span></button></div>
+      <div id="uploadMessage" class="message hidden" role="status"></div>
+      <div id="uploadProgress" class="progress-wrap hidden"><div class="progress-label"><span id="progressLabel">Preparing upload…</span><span id="progressPercent">0%</span></div><div class="progress-track"><div id="progressBar" class="progress-bar"></div></div></div>
+    </div>
+    <aside class="upload-side panel"><div class="side-icon">✦</div><h2>Before you upload</h2><ul><li>Choose the correct instrument folder.</li><li>Duplicate filenames are checked before upload.</li><li>Existing files will not be overwritten.</li><li>Review the destination before confirming.</li></ul><div class="side-divider"></div><p class="side-small">Beta note: the repository connection must be configured before uploads can work.</p></aside>
+  </section>
+</main>
+<div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal-card"><div class="modal-icon">↑</div><h2 id="confirmTitle">Confirm upload</h2><p>Check the file and destination before adding it to the shared library.</p><div class="confirm-detail"><span>FILE</span><strong id="confirmFilename">—</strong><span>DESTINATION</span><code id="confirmPath">—</code></div><div class="modal-actions"><button id="cancelUploadBtn" class="button button-quiet" type="button">Cancel</button><button id="confirmUploadBtn" class="button button-primary" type="button">Confirm upload</button></div></div></div>
+<footer class="site-footer"><span>HGCFBC CHORDS LIBRARY</span><span>UPLOAD A CHORD SHEET</span></footer><script src="assets/config.js"></script><script src="assets/app.js"></script></body></html>
