@@ -152,3 +152,33 @@ html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{d
     padding: 10px 10px 150px !important;
   }
 }
+
+
+/* FINAL MOBILE RULE: never display the YouTube panel in Performance Mode on narrow screens.
+   Keep its iframe in the DOM off-screen so the existing YouTube control can still send commands. */
+@media screen and (max-width: 600px) {
+  html body.performance-mode #chordViewer > .listen-panel,
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open {
+    display: block !important;
+    position: fixed !important;
+    inset: auto auto auto -200vw !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: none !important;
+    z-index: -1 !important;
+  }
+  html body.performance-mode #chordViewer .pdf-pages {
+    padding: 8px 8px 150px !important;
+  }
+  html body.performance-mode #chordViewer .viewer-image-wrap {
+    padding: 10px 10px 150px !important;
+  }
+}
