@@ -90,38 +90,38 @@ html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{d
 @media(max-width:600px){html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{top:54px!important;right:8px!important;bottom:104px!important;left:8px!important;width:auto!important;max-height:calc(100dvh - 170px)!important}}
 
 
-/* Mobile Performance Mode: reserve space for the floating YouTube player so it never covers the chord sheet. */
-@media (max-width:600px){
-  html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{
-    top:54px!important;
-    right:8px!important;
-    bottom:auto!important;
-    left:8px!important;
-    width:auto!important;
-    max-width:none!important;
-    height:auto!important;
-    max-height:none!important;
-    overflow:hidden!important;
+/* MOBILE PERFORMANCE MODE: keep the YouTube player above the sheet and reserve real space for it. */
+@media (max-width: 600px) {
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open {
+    position: fixed !important;
+    top: 50px !important;
+    right: 8px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: 255px !important;
+    overflow: hidden !important;
+    z-index: 10001 !important;
   }
-  html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-head{
-    padding:8px 10px!important;
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open .listen-head {
+    min-height: 42px !important;
+    padding: 8px 11px !important;
   }
-  html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-hide{
-    width:28px!important;height:28px!important;
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open .listen-body {
+    padding: 7px !important;
   }
-  html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-body{
-    padding:6px!important;
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open .listen-frame {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    max-height: none !important;
   }
-  html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-frame{
-    aspect-ratio:16/9!important;
-    border-radius:8px!important;
+  /* The PDF/image content itself starts below the fixed player instead of sliding behind it. */
+  html body.performance-mode #chordViewer .pdf-pages {
+    padding: 265px 8px 150px !important;
   }
-  html body.performance-mode #chordViewer .pdf-pages{
-    padding-top:250px!important;
-    padding-bottom:150px!important;
-  }
-  html body.performance-mode #chordViewer .viewer-image-wrap{
-    padding-top:250px!important;
-    padding-bottom:150px!important;
+  html body.performance-mode #chordViewer .viewer-image-wrap {
+    padding: 265px 8px 150px !important;
   }
 }
