@@ -386,6 +386,8 @@
   let activeViewerId = null;
   let viewerRenderToken = 0;
   let listenRenderToken = 0;
+  const pdfZoomByPath = new Map();
+  const imageZoomByPath = new Map();
 
   /* ---------- Performance mode for musicians ---------- */
   const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, idleTimer: 0 };
@@ -779,8 +781,35 @@
     const lower = tab.name.toLowerCase();
 
     if (/\.(jpg|jpeg|png)$/i.test(lower)) {
-      content.innerHTML = `<div class="image-toolbar"><button type="button" data-performance-toggle>▶ Performance Mode</button></div><div class="viewer-image-wrap"><img src="${esc(url)}" alt="${esc(tab.name)}" class="viewer-image"></div>`;
+      const initialImageZoom = imageZoomByPath.get(tab.path) ?? (window.matchMedia("(max-width: 760px)").matches ? 0.9 : 1);
+      content.innerHTML = `<div class="image-toolbar"><button type="button" data-performance-toggle>▶ Performance Mode</button><span class="image-zoom-label" data-image-zoom-label>${Math.round(initialImageZoom * 100)}%</span></div><div class="viewer-image-wrap"><img src="${esc(url)}" alt="${esc(tab.name)}" class="viewer-image"></div>`;
       content.querySelector("[data-performance-toggle]").addEventListener("click", enterPerformanceMode);
+      const image = content.querySelector(".viewer-image");
+      const wrap = content.querySelector(".viewer-image-wrap");
+      let imageScale = initialImageZoom;
+      let pinchStartDistance = 0;
+      let pinchStartScale = imageScale;
+      const applyImageZoom = () => {
+        image.style.transform = `scale(${imageScale})`;
+        image.style.transformOrigin = "top center";
+        content.querySelector("[data-image-zoom-label]").textContent = `${Math.round(imageScale * 100)}%`;
+        imageZoomByPath.set(tab.path, imageScale);
+      };
+      applyImageZoom();
+      wrap.addEventListener("touchstart", event => {
+        if (event.touches.length === 2) {
+          pinchStartDistance = Math.hypot(event.touches[0].clientX-event.touches[1].clientX, event.touches[0].clientY-event.touches[1].clientY);
+          pinchStartScale = imageScale;
+        }
+      }, {passive:true});
+      wrap.addEventListener("touchmove", event => {
+        if (event.touches.length !== 2 || !pinchStartDistance) return;
+        event.preventDefault();
+        const distance = Math.hypot(event.touches[0].clientX-event.touches[1].clientX, event.touches[0].clientY-event.touches[1].clientY);
+        imageScale = Math.max(0.5, Math.min(2.5, pinchStartScale * distance / pinchStartDistance));
+        applyImageZoom();
+      }, {passive:false});
+      wrap.addEventListener("touchend", event => { if (event.touches.length < 2) pinchStartDistance = 0; }, {passive:true});
       return;
     }
 
@@ -825,7 +854,13 @@
 
     if (thisRenderToken !== viewerRenderToken) return;
 
-    let scale = 1;
+    let scale = pdfZoomByPath.get(tab.path) ?? (() => {
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        return Math.max(0.55, Math.min(1, (scrollArea.clientWidth - 24) / 612 * 0.92));
+      }
+      return 1;
+    })();
+    pdfZoomByPath.set(tab.path, scale);
     let renderVersion = 0;
     let activeRenderTasks = [];
     let resizeTimer = null;
@@ -886,10 +921,12 @@
 
     content.querySelector("[data-zoom-in]").addEventListener("click", () => {
       scale = Math.min(scale + 0.2, 3);
+      pdfZoomByPath.set(tab.path, scale);
       renderPages();
     });
     content.querySelector("[data-zoom-out]").addEventListener("click", () => {
       scale = Math.max(scale - 0.2, 0.5);
+      pdfZoomByPath.set(tab.path, scale);
       renderPages();
     });
     content.querySelector("[data-fit-width]").addEventListener("click", async () => {
@@ -897,7 +934,8 @@
         const page = await pdf.getPage(1);
         const baseViewport = page.getViewport({ scale: 1 });
         const availableWidth = Math.max(240, scrollArea.clientWidth - 24);
-        scale = Math.max(0.5, Math.min(3, availableWidth / baseViewport.width));
+        scale = Math.max(0.5, Math.min(3, availableWidth / baseViewport.width * (window.matchMedia("(max-width: 760px)").matches ? 0.92 : 1)));
+        pdfZoomByPath.set(tab.path, scale);
         renderPages();
       } catch (error) {
         console.error("Could not fit PDF to width:", error);
@@ -923,6 +961,7 @@
       if (event.touches.length !== 2 || !pinchActive || !initialDistance) return;
       event.preventDefault();
       scale = Math.max(0.5, Math.min(3, initialScale * getTouchDistance(event.touches) / initialDistance));
+      pdfZoomByPath.set(tab.path, scale);
       zoomLabel.textContent = `${Math.round(scale * 100)}%`;
     }, { passive: false });
     scrollArea.addEventListener("touchend", event => {
