@@ -451,15 +451,42 @@
           performance.frame = requestAnimationFrame(performanceTick);
         }
       });
-      controls.querySelector("[data-performance-youtube]").addEventListener("click", () => {
-        const iframe = document.querySelector("#chordViewer .listen-panel iframe");
-        if (!iframe || !iframe.contentWindow) {
-          toast("Walang YouTube reference video para sa kantang ito.");
+      controls.querySelector("[data-performance-youtube]").addEventListener("click", async () => {
+        const shell = document.getElementById("chordViewer");
+        const tab = viewerTabs.find(t => t.id === activeViewerId);
+        if (!shell || !tab) {
+          toast("Buksan muna ang chord sheet.");
           return;
         }
+
+        // Ensure the reference player is actually created even if Listen was
+        // never opened before entering Performance Mode.
+        tab.listen = true;
+        await loadReferences();
+        await renderListenPanel(shell, tab);
+        let iframe = shell.querySelector(".listen-panel iframe");
+        if (!iframe || !iframe.contentWindow) {
+          toast("Walang naka-save na YouTube reference para sa kantang ito.");
+          return;
+        }
+
         performance.youtubePlaying = !performance.youtubePlaying;
         const command = performance.youtubePlaying ? "playVideo" : "pauseVideo";
-        iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "https://www.youtube-nocookie.com");
+        const sendCommand = () => {
+          const playerWindow = iframe && iframe.contentWindow;
+          if (!playerWindow) return;
+          // The YouTube IFrame API accepts command messages when
+          // enablejsapi=1 is present in the embed URL.
+          playerWindow.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "*");
+        };
+        if (!iframe.dataset.performanceApiReady) {
+          iframe.dataset.performanceApiReady = "1";
+          iframe.addEventListener("load", sendCommand, { once: true });
+          // Covers already-loaded iframes; a repeated command after load is safe.
+          window.setTimeout(sendCommand, 350);
+        } else {
+          sendCommand();
+        }
         const button = controls.querySelector("[data-performance-youtube]");
         button.textContent = performance.youtubePlaying ? "Ⅱ YouTube" : "▶ YouTube";
         button.setAttribute("aria-pressed", String(performance.youtubePlaying));
