@@ -1,4 +1,9 @@
 {
   "version": 1,
-  "references": {}
+  "references": {
+    "chords/guitar-keyboard/ALLELUJAH.pdf": {
+      "url": "https://www.youtube.com/watch?v=zOCbWOw0PPE",
+      "updated": "2026-10-28T07:54:49.459Z"
+    }
+  }
 }
