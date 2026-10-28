@@ -57,9 +57,17 @@ body.performance-mode #chordViewer{position:fixed!important;inset:0!important;z-
 body.performance-mode #chordViewer>.viewer-top,body.performance-mode #chordViewer>.viewer-tabs{display:none!important}
 body.performance-mode #chordViewer>.viewer-content{height:auto!important;min-height:0!important;flex:1 1 auto!important;border:0!important;border-radius:0!important;overflow:hidden!important}
 body.performance-mode #chordViewer>.listen-panel{display:none!important}
-body.performance-mode #chordViewer .pdf-toolbar,body.performance-mode #chordViewer .image-toolbar{display:none!important}
+body.performance-mode #chordViewer .pdf-toolbar{display:none!important}
 body.performance-mode #chordViewer .pdf-scroll-area{height:100%!important;min-height:0!important;overscroll-behavior:contain!important}
 body.performance-mode #chordViewer .pdf-pages{padding:10px 10px 90px!important;gap:12px!important}
 body.performance-mode #chordViewer .viewer-image-wrap{height:100%!important;min-height:0!important;display:block!important;overflow:auto!important;padding:10px 10px 90px!important}
 body.performance-mode #chordViewer .viewer-image{max-width:100%!important;max-height:none!important;width:auto;height:auto;object-fit:contain}
 @media(max-width:600px){.performance-controls{gap:6px;padding:8px;width:calc(100vw - 14px);bottom:max(7px,env(safe-area-inset-bottom));border-radius:13px}.performance-song{flex:1 1 100%;max-width:none;margin:0 0 2px}.performance-controls button{padding:9px 10px;min-height:38px}.performance-speed{flex:1 1 100%;justify-content:center}.performance-speed input{width:min(42vw,180px)}body.performance-mode #chordViewer .pdf-pages{padding:8px 8px 150px!important}}
+
+/* Performance mode refinements: song navigation, top title, auto-fading controls */
+.performance-top-title{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9998;max-width:calc(100vw - 28px);padding:10px 18px;border:1px solid rgba(145,190,225,.25);border-radius:12px;background:rgba(5,17,29,.88);backdrop-filter:blur(14px);box-shadow:0 8px 28px #0005;color:#eaf5ff;font:700 13px 'DM Sans',sans-serif;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;transition:opacity .35s ease}
+.performance-controls,.performance-top-title{transition:opacity .35s ease,visibility .35s ease}
+body.performance-idle .performance-controls,body.performance-idle .performance-top-title{opacity:0;visibility:hidden;pointer-events:none}
+body.performance-mode .performance-controls:hover,body.performance-mode .performance-controls:focus-within{opacity:1;visibility:visible;pointer-events:auto}
+body.performance-mode .performance-top-title{top:12px}
+@media(max-width:600px){.performance-top-title{top:8px;max-width:calc(100vw - 16px);font-size:12px;padding:8px 12px}.performance-controls{flex-wrap:wrap}.performance-controls button{font-size:11px}}
