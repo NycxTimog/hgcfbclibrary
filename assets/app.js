@@ -270,7 +270,7 @@
   }
 
   const youTubeEmbedUrl = p =>
-    `https://www.youtube-nocookie.com/embed/${p.id}?rel=0&playsinline=1${p.start ? `&start=${p.start}` : ""}`;
+    `https://www.youtube-nocookie.com/embed/${p.id}?rel=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}${p.start ? `&start=${p.start}` : ""}`;
   const youTubeWatchUrl = p =>
     `https://www.youtube.com/watch?v=${p.id}${p.start ? `&t=${p.start}s` : ""}`;
 
@@ -390,7 +390,7 @@
   const imageZoomByPath = new Map();
 
   /* ---------- Performance mode for musicians ---------- */
-  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, idleTimer: 0 };
+  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, idleTimer: 0, youtubePlaying: false };
   function performanceScrollTarget() {
     const shell = document.getElementById("chordViewer");
     return shell?.querySelector(".pdf-scroll-area") || shell?.querySelector(".viewer-image-wrap") || null;
@@ -431,7 +431,8 @@
       controls.innerHTML = `
         <button type="button" data-performance-prev aria-label="Previous song">‹ Prev</button>
         <button type="button" data-performance-next aria-label="Next song">Next ›</button>
-        <button type="button" data-performance-play>▶ Play</button>
+        <button type="button" data-performance-play>▶ Scroll</button>
+        <button type="button" data-performance-youtube aria-pressed="false" title="Play or pause the YouTube reference">▶ YouTube</button>
         <label class="performance-speed">Speed <input data-performance-speed type="range" min="8" max="100" step="2" value="28" aria-label="Auto-scroll speed"><span data-performance-speed-label>28 px/s</span></label>
         <button type="button" data-performance-zoom-out aria-label="Zoom out">−</button>
         <button type="button" data-performance-zoom-in aria-label="Zoom in">+</button>
@@ -449,6 +450,20 @@
           performance.lastTime = 0;
           performance.frame = requestAnimationFrame(performanceTick);
         }
+      });
+      controls.querySelector("[data-performance-youtube]").addEventListener("click", () => {
+        const iframe = document.querySelector("#chordViewer .listen-panel iframe");
+        if (!iframe || !iframe.contentWindow) {
+          toast("Walang YouTube reference video para sa kantang ito.");
+          return;
+        }
+        performance.youtubePlaying = !performance.youtubePlaying;
+        const command = performance.youtubePlaying ? "playVideo" : "pauseVideo";
+        iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "https://www.youtube-nocookie.com");
+        const button = controls.querySelector("[data-performance-youtube]");
+        button.textContent = performance.youtubePlaying ? "Ⅱ YouTube" : "▶ YouTube";
+        button.setAttribute("aria-pressed", String(performance.youtubePlaying));
+        resetPerformanceControlsIdle();
       });
       controls.querySelector("[data-performance-speed]").addEventListener("input", e => {
         performance.speed = Number(e.target.value);
@@ -468,6 +483,9 @@
     }
     const tab = viewerTabs.find(t => t.id === activeViewerId);
     topTitle.textContent = tab?.name || "PERFORMANCE MODE";
+    performance.youtubePlaying = false;
+    const ytButton = controls.querySelector("[data-performance-youtube]");
+    if (ytButton) { ytButton.textContent = "▶ YouTube"; ytButton.setAttribute("aria-pressed", "false"); }
     controls.querySelector("[data-performance-speed]").value = String(performance.speed);
     resetPerformanceControlsIdle();
     controls.querySelector("[data-performance-speed-label]").textContent = `${performance.speed} px/s`;
