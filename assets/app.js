@@ -388,24 +388,10 @@
   let listenRenderToken = 0;
 
   /* ---------- Performance mode for musicians ---------- */
-  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, imageScale: 1, imageBaseWidth: 0 };
+  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, idleTimer: 0 };
   function performanceScrollTarget() {
     const shell = document.getElementById("chordViewer");
     return shell?.querySelector(".pdf-scroll-area") || shell?.querySelector(".viewer-image-wrap") || null;
-  }
-  function performanceZoom(direction) {
-    const shell = document.getElementById("chordViewer");
-    const image = shell?.querySelector(".viewer-image");
-    if (image) {
-      if (!performance.imageBaseWidth) performance.imageBaseWidth = image.getBoundingClientRect().width || image.naturalWidth;
-      performance.imageScale = Math.max(0.5, Math.min(3, performance.imageScale + direction * 0.2));
-      image.style.maxWidth = "none";
-      image.style.maxHeight = "none";
-      image.style.width = `${Math.round(performance.imageBaseWidth * performance.imageScale)}px`;
-      image.style.height = "auto";
-      return;
-    }
-    shell?.querySelector(direction > 0 ? "[data-zoom-in]" : "[data-zoom-out]")?.click();
   }
   function stopPerformanceScroll() {
     performance.playing = false;
@@ -432,16 +418,6 @@
     if (!shell || shell.classList.contains("hidden")) return;
     performance.active = true;
     performance.playing = false;
-    performance.imageScale = 1;
-    performance.imageBaseWidth = 0;
-    const image = shell.querySelector(".viewer-image");
-    if (image) {
-      image.style.width = "";
-      image.style.maxWidth = "";
-      image.style.maxHeight = "";
-      image.style.height = "";
-      performance.imageBaseWidth = image.getBoundingClientRect().width || image.naturalWidth || 0;
-    }
     document.body.classList.add("performance-mode");
     let controls = document.getElementById("performanceControls");
     if (!controls) {
@@ -451,13 +427,16 @@
       controls.setAttribute("role", "toolbar");
       controls.setAttribute("aria-label", "Performance controls");
       controls.innerHTML = `
-        <strong class="performance-song" data-performance-song>PERFORMANCE MODE</strong>
+        <button type="button" data-performance-prev aria-label="Previous song">‹ Prev</button>
+        <button type="button" data-performance-next aria-label="Next song">Next ›</button>
         <button type="button" data-performance-play>▶ Play</button>
         <label class="performance-speed">Speed <input data-performance-speed type="range" min="8" max="100" step="2" value="28" aria-label="Auto-scroll speed"><span data-performance-speed-label>28 px/s</span></label>
         <button type="button" data-performance-zoom-out aria-label="Zoom out">−</button>
         <button type="button" data-performance-zoom-in aria-label="Zoom in">+</button>
         <button type="button" data-performance-exit>✕ Exit</button>`;
       document.body.appendChild(controls);
+      controls.querySelector("[data-performance-prev]").addEventListener("click", () => switchPerformanceSong(-1));
+      controls.querySelector("[data-performance-next]").addEventListener("click", () => switchPerformanceSong(1));
       controls.querySelector("[data-performance-play]").addEventListener("click", () => {
         if (performance.playing) stopPerformanceScroll();
         else {
@@ -473,33 +452,56 @@
         performance.speed = Number(e.target.value);
         controls.querySelector("[data-performance-speed-label]").textContent = `${performance.speed} px/s`;
       });
-      controls.querySelector("[data-performance-zoom-in]").addEventListener("click", () => performanceZoom(1));
-      controls.querySelector("[data-performance-zoom-out]").addEventListener("click", () => performanceZoom(-1));
+      controls.querySelector("[data-performance-zoom-in]").addEventListener("click", () => document.querySelector("#chordViewer [data-zoom-in]")?.click());
+      controls.querySelector("[data-performance-zoom-out]").addEventListener("click", () => document.querySelector("#chordViewer [data-zoom-out]")?.click());
       controls.querySelector("[data-performance-exit]").addEventListener("click", exitPerformanceMode);
     }
+    let topTitle = document.getElementById("performanceTopTitle");
+    if (!topTitle) {
+      topTitle = document.createElement("div");
+      topTitle.id = "performanceTopTitle";
+      topTitle.className = "performance-top-title";
+      topTitle.setAttribute("aria-live", "polite");
+      document.body.appendChild(topTitle);
+    }
     const tab = viewerTabs.find(t => t.id === activeViewerId);
-    controls.querySelector("[data-performance-song]").textContent = tab?.name || "PERFORMANCE MODE";
+    topTitle.textContent = tab?.name || "PERFORMANCE MODE";
     controls.querySelector("[data-performance-speed]").value = String(performance.speed);
+    resetPerformanceControlsIdle();
     controls.querySelector("[data-performance-speed-label]").textContent = `${performance.speed} px/s`;
     try { if ("wakeLock" in navigator) performance.wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+  }
+  function switchPerformanceSong(direction) {
+    if (!viewerTabs.length) return;
+    const index = viewerTabs.findIndex(t => t.id === activeViewerId);
+    const nextIndex = (index + direction + viewerTabs.length) % viewerTabs.length;
+    activateViewerTab(viewerTabs[nextIndex].id);
+    resetPerformanceControlsIdle();
+  }
+  function resetPerformanceControlsIdle() {
+    if (!performance.active) return;
+    document.body.classList.remove("performance-idle");
+    window.clearTimeout(performance.idleTimer);
+    performance.idleTimer = window.setTimeout(() => {
+      if (performance.active) document.body.classList.add("performance-idle");
+    }, 2200);
   }
   function exitPerformanceMode() {
     stopPerformanceScroll();
     performance.active = false;
-    document.body.classList.remove("performance-mode");
-    const image = document.querySelector("#chordViewer .viewer-image");
-    if (image) {
-      image.style.width = "";
-      image.style.maxWidth = "";
-      image.style.maxHeight = "";
-      image.style.height = "";
-    }
+    window.clearTimeout(performance.idleTimer);
+    document.body.classList.remove("performance-mode", "performance-idle");
+    document.getElementById("performanceTopTitle")?.remove();
     document.getElementById("performanceControls")?.remove();
     try { performance.wakeLock?.release(); } catch (_) {}
     performance.wakeLock = null;
   }
+  ["pointermove", "pointerdown", "touchstart", "mousemove"].forEach(eventName => {
+    document.addEventListener(eventName, resetPerformanceControlsIdle, { passive: true });
+  });
   document.addEventListener("keydown", e => {
     if (!performance.active || e.target.matches("input,textarea,select")) return;
+    resetPerformanceControlsIdle();
     if (e.code === "Space") { e.preventDefault(); document.querySelector("[data-performance-play]")?.click(); }
     else if (e.key === "Escape") exitPerformanceMode();
     else if (e.key === "ArrowDown" || e.key === "PageDown") { e.preventDefault(); const t = performanceScrollTarget(); if (t) t.scrollTop += Math.max(100, t.clientHeight * .7); }
@@ -751,7 +753,12 @@
 
     const thisRenderToken = ++viewerRenderToken;
     activeViewerId = id;
-    if (performance.active) { const title = document.querySelector("[data-performance-song]"); if (title) title.textContent = tab.name; stopPerformanceScroll(); }
+    if (performance.active) {
+      const title = document.getElementById("performanceTopTitle");
+      if (title) title.textContent = tab.name;
+      stopPerformanceScroll();
+      resetPerformanceControlsIdle();
+    }
 
     shell.querySelector(".viewer-tabs").innerHTML = viewerTabs.map(t => `
       <button type="button" role="tab"
