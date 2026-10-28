@@ -459,34 +459,40 @@
           return;
         }
 
-        // Ensure the reference player is actually created even if Listen was
-        // never opened before entering Performance Mode.
-        tab.listen = true;
         await loadReferences();
-        await renderListenPanel(shell, tab);
-        let iframe = shell.querySelector(".listen-panel iframe");
-        if (!iframe || !iframe.contentWindow) {
-          toast("Walang naka-save na YouTube reference para sa kantang ito.");
+        const entry = refs.map[tab.path];
+        const parsed = entry ? parseYouTube(entry.url) : null;
+        if (!parsed) {
+          toast("No YouTube reference video is saved for this song.");
           return;
         }
 
+        const panel = shell.querySelector(".listen-panel");
+        const alreadyOpen = Boolean(panel && !panel.classList.contains("hidden") && panel.querySelector("iframe"));
+        // Open the reference player automatically in Performance Mode if it
+        // has not been opened yet. The visible floating panel is styled in CSS.
+        if (!alreadyOpen) {
+          tab.listen = true;
+          await renderListenPanel(shell, tab);
+          panel?.classList.add("performance-youtube-open");
+          performance.youtubePlaying = true;
+          const playButton = controls.querySelector("[data-performance-youtube]");
+          playButton.textContent = "Ⅱ YouTube";
+          playButton.setAttribute("aria-pressed", "true");
+          resetPerformanceControlsIdle();
+          const newFrame = panel?.querySelector("iframe");
+          if (newFrame) {
+            const sendPlay = () => newFrame.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "playVideo", args: [] }), "*");
+            newFrame.addEventListener("load", sendPlay, { once: true });
+            window.setTimeout(sendPlay, 700);
+          }
+          return;
+        }
+
+        const iframe = panel.querySelector("iframe");
         performance.youtubePlaying = !performance.youtubePlaying;
         const command = performance.youtubePlaying ? "playVideo" : "pauseVideo";
-        const sendCommand = () => {
-          const playerWindow = iframe && iframe.contentWindow;
-          if (!playerWindow) return;
-          // The YouTube IFrame API accepts command messages when
-          // enablejsapi=1 is present in the embed URL.
-          playerWindow.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "*");
-        };
-        if (!iframe.dataset.performanceApiReady) {
-          iframe.dataset.performanceApiReady = "1";
-          iframe.addEventListener("load", sendCommand, { once: true });
-          // Covers already-loaded iframes; a repeated command after load is safe.
-          window.setTimeout(sendCommand, 350);
-        } else {
-          sendCommand();
-        }
+        iframe.contentWindow?.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "*");
         const button = controls.querySelector("[data-performance-youtube]");
         button.textContent = performance.youtubePlaying ? "Ⅱ YouTube" : "▶ YouTube";
         button.setAttribute("aria-pressed", String(performance.youtubePlaying));
@@ -522,6 +528,11 @@
     if (!viewerTabs.length) return;
     const index = viewerTabs.findIndex(t => t.id === activeViewerId);
     const nextIndex = (index + direction + viewerTabs.length) % viewerTabs.length;
+    const shell = document.getElementById("chordViewer");
+    shell?.querySelector(".listen-panel")?.classList.remove("performance-youtube-open");
+    performance.youtubePlaying = false;
+    const ytButton = document.querySelector("[data-performance-youtube]");
+    if (ytButton) { ytButton.textContent = "▶ YouTube"; ytButton.setAttribute("aria-pressed", "false"); }
     activateViewerTab(viewerTabs[nextIndex].id);
     resetPerformanceControlsIdle();
   }
