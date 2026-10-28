@@ -125,3 +125,30 @@ html body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{d
     padding: 265px 8px 150px !important;
   }
 }
+
+/* MOBILE: keep the YouTube iframe alive for Play/Pause, but never show it over the chord sheet. */
+@media (max-width: 600px) {
+  html body.performance-mode #chordViewer > .listen-panel.performance-youtube-open {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: -10000px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 320px !important;
+    max-width: 320px !important;
+    height: 220px !important;
+    max-height: 220px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: none !important;
+    z-index: -1 !important;
+  }
+  html body.performance-mode #chordViewer .pdf-pages {
+    padding: 8px 8px 150px !important;
+  }
+  html body.performance-mode #chordViewer .viewer-image-wrap {
+    padding: 10px 10px 150px !important;
+  }
+}
