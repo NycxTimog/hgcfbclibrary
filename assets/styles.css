@@ -57,7 +57,7 @@ body.performance-mode #chordViewer{position:fixed!important;inset:0!important;z-
 body.performance-mode #chordViewer>.viewer-top,body.performance-mode #chordViewer>.viewer-tabs{display:none!important}
 body.performance-mode #chordViewer>.viewer-content{height:auto!important;min-height:0!important;flex:1 1 auto!important;border:0!important;border-radius:0!important;overflow:hidden!important}
 body.performance-mode #chordViewer>.listen-panel{display:none!important}
-body.performance-mode #chordViewer .pdf-toolbar{display:none!important}
+body.performance-mode #chordViewer .pdf-toolbar,body.performance-mode #chordViewer .image-toolbar{display:none!important}
 body.performance-mode #chordViewer .pdf-scroll-area{height:100%!important;min-height:0!important;overscroll-behavior:contain!important}
 body.performance-mode #chordViewer .pdf-pages{padding:10px 10px 90px!important;gap:12px!important}
 body.performance-mode #chordViewer .viewer-image-wrap{height:100%!important;min-height:0!important;display:block!important;overflow:auto!important;padding:10px 10px 90px!important}
