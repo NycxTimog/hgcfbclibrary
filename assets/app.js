@@ -455,7 +455,7 @@
         const shell = document.getElementById("chordViewer");
         const tab = viewerTabs.find(t => t.id === activeViewerId);
         if (!shell || !tab) {
-          toast("Buksan muna ang chord sheet.");
+          toast("Open a chord sheet first.");
           return;
         }
 
@@ -482,9 +482,23 @@
           resetPerformanceControlsIdle();
           const newFrame = panel?.querySelector("iframe");
           if (newFrame) {
-            const sendPlay = () => newFrame.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "playVideo", args: [] }), "*");
+            // Re-load with autoplay after the user taps the Performance Mode control.
+            // This avoids sending the API command before the embedded player is ready.
+            const playerUrl = new URL(newFrame.src);
+            playerUrl.searchParams.set("enablejsapi", "1");
+            playerUrl.searchParams.set("autoplay", "1");
+            playerUrl.searchParams.set("playsinline", "1");
+            playerUrl.searchParams.set("origin", location.origin);
+            newFrame.src = playerUrl.toString();
+            const sendPlay = () => {
+              try {
+                newFrame.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: 1 }), "*");
+                newFrame.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "playVideo", args: "" }), "*");
+              } catch (_) {}
+            };
             newFrame.addEventListener("load", sendPlay, { once: true });
-            window.setTimeout(sendPlay, 700);
+            window.setTimeout(sendPlay, 900);
+            window.setTimeout(sendPlay, 1800);
           }
           return;
         }
@@ -492,7 +506,10 @@
         const iframe = panel.querySelector("iframe");
         performance.youtubePlaying = !performance.youtubePlaying;
         const command = performance.youtubePlaying ? "playVideo" : "pauseVideo";
-        iframe.contentWindow?.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), "*");
+        const sendCommand = () => iframe?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: command, args: "" }), "*");
+        sendCommand();
+        window.setTimeout(sendCommand, 350);
+        window.setTimeout(sendCommand, 900);
         const button = controls.querySelector("[data-performance-youtube]");
         button.textContent = performance.youtubePlaying ? "Ⅱ YouTube" : "▶ YouTube";
         button.setAttribute("aria-pressed", String(performance.youtubePlaying));
