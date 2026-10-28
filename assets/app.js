@@ -462,34 +462,40 @@
         await loadReferences();
         const entry = refs.map[tab.path];
         const parsed = entry ? parseYouTube(entry.url) : null;
+        const panel = shell.querySelector(".listen-panel");
+
+        // If no reference is saved, open the panel silently so the user can add one;
+        // don't show the distracting “no YouTube reference” toast.
         if (!parsed) {
-          toast("No YouTube reference video is saved for this song.");
+          tab.listen = true;
+          await renderListenPanel(shell, tab);
+          shell.querySelector(".listen-panel")?.classList.add("performance-youtube-open");
+          resetPerformanceControlsIdle();
           return;
         }
 
-        const panel = shell.querySelector(".listen-panel");
-        const alreadyOpen = Boolean(panel && !panel.classList.contains("hidden") && panel.querySelector("iframe"));
+        const alreadyOpen = Boolean(panel && !panel.classList.contains("hidden") && panel.querySelector("iframe") && panel.classList.contains("performance-youtube-open"));
         // Open the reference player automatically in Performance Mode if it
-        // has not been opened yet. The visible floating panel is styled in CSS.
+        // has not been opened yet. Re-query the panel after rendering so we
+        // always target the current player and not a stale reference.
         if (!alreadyOpen) {
           tab.listen = true;
           await renderListenPanel(shell, tab);
-          panel?.classList.add("performance-youtube-open");
+          const activePanel = shell.querySelector(".listen-panel");
+          activePanel?.classList.add("performance-youtube-open");
           performance.youtubePlaying = true;
           const playButton = controls.querySelector("[data-performance-youtube]");
           playButton.textContent = "Ⅱ YouTube";
           playButton.setAttribute("aria-pressed", "true");
           resetPerformanceControlsIdle();
-          const newFrame = panel?.querySelector("iframe");
+          const newFrame = activePanel?.querySelector("iframe");
           if (newFrame) {
-            // Re-load with autoplay after the user taps the Performance Mode control.
-            // This avoids sending the API command before the embedded player is ready.
+            // Autoplay is enabled only after a direct user click in Performance Mode.
             const playerUrl = new URL(newFrame.src);
             playerUrl.searchParams.set("enablejsapi", "1");
             playerUrl.searchParams.set("autoplay", "1");
             playerUrl.searchParams.set("playsinline", "1");
             playerUrl.searchParams.set("origin", location.origin);
-            newFrame.src = playerUrl.toString();
             const sendPlay = () => {
               try {
                 newFrame.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: 1 }), "*");
@@ -497,6 +503,7 @@
               } catch (_) {}
             };
             newFrame.addEventListener("load", sendPlay, { once: true });
+            newFrame.src = playerUrl.toString();
             window.setTimeout(sendPlay, 900);
             window.setTimeout(sendPlay, 1800);
           }
