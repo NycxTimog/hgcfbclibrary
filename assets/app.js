@@ -854,12 +854,23 @@
 
     if (thisRenderToken !== viewerRenderToken) return;
 
-    let scale = pdfZoomByPath.get(tab.path) ?? (() => {
+    // On phones, fit the actual PDF page width (do not assume US Letter).
+    // This avoids starting at 100% when the PDF page is wider than the screen.
+    let scale = pdfZoomByPath.get(tab.path);
+    if (scale == null) {
       if (window.matchMedia("(max-width: 760px)").matches) {
-        return Math.max(0.55, Math.min(1, (scrollArea.clientWidth - 24) / 612 * 0.92));
+        try {
+          const firstPage = await pdf.getPage(1);
+          const baseViewport = firstPage.getViewport({ scale: 1 });
+          const availableWidth = Math.max(240, scrollArea.clientWidth - 24);
+          scale = Math.max(0.35, Math.min(1, (availableWidth / baseViewport.width) * 0.90));
+        } catch (_) {
+          scale = 0.75;
+        }
+      } else {
+        scale = 1;
       }
-      return 1;
-    })();
+    }
     pdfZoomByPath.set(tab.path, scale);
     let renderVersion = 0;
     let activeRenderTasks = [];
@@ -960,14 +971,18 @@
     scrollArea.addEventListener("touchmove", event => {
       if (event.touches.length !== 2 || !pinchActive || !initialDistance) return;
       event.preventDefault();
-      scale = Math.max(0.5, Math.min(3, initialScale * getTouchDistance(event.touches) / initialDistance));
+      scale = Math.max(0.35, Math.min(3, initialScale * getTouchDistance(event.touches) / initialDistance));
       pdfZoomByPath.set(tab.path, scale);
       zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+      pages.style.transform = `scale(${scale / initialScale})`;
+      pages.style.transformOrigin = "top center";
     }, { passive: false });
     scrollArea.addEventListener("touchend", event => {
       if (event.touches.length < 2 && pinchActive) {
         pinchActive = false;
         initialDistance = 0;
+        pages.style.transform = "";
+        pages.style.transformOrigin = "";
         renderPages();
       }
     }, { passive: true });
@@ -975,6 +990,8 @@
       if (pinchActive) {
         pinchActive = false;
         initialDistance = 0;
+        pages.style.transform = "";
+        pages.style.transformOrigin = "";
         renderPages();
       }
     }, { passive: true });
