@@ -71,10 +71,3 @@ body.performance-idle .performance-controls,body.performance-idle .performance-t
 body.performance-mode .performance-controls:hover,body.performance-mode .performance-controls:focus-within{opacity:1;visibility:visible;pointer-events:auto}
 body.performance-mode .performance-top-title{top:12px}
 @media(max-width:600px){.performance-top-title{top:8px;max-width:calc(100vw - 16px);font-size:12px;padding:8px 12px}.performance-controls{flex-wrap:wrap}.performance-controls button{font-size:11px}}
-
-/* Mobile chord sheet zoom defaults and touch pinch support */
-body.performance-mode #chordViewer .pdf-scroll-area, body.performance-mode #chordViewer .viewer-image-wrap { touch-action: pan-x pan-y pinch-zoom; }
-.viewer-image-wrap { touch-action: pan-x pan-y pinch-zoom; }
-.viewer-image { transform-origin: top center; transition: transform .06s linear; }
-.image-toolbar { align-items:center; gap:12px; }
-.image-zoom-label { color:#b8ccdf; font:10px 'DM Mono'; }
