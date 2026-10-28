@@ -71,3 +71,16 @@ body.performance-idle .performance-controls,body.performance-idle .performance-t
 body.performance-mode .performance-controls:hover,body.performance-mode .performance-controls:focus-within{opacity:1;visibility:visible;pointer-events:auto}
 body.performance-mode .performance-top-title{top:12px}
 @media(max-width:600px){.performance-top-title{top:8px;max-width:calc(100vw - 16px);font-size:12px;padding:8px 12px}.performance-controls{flex-wrap:wrap}.performance-controls button{font-size:11px}}
+
+/* Performance Mode: show the YouTube reference as a floating player when requested */
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{
+  display:block!important;position:fixed!important;z-index:9997!important;right:16px!important;top:64px!important;bottom:110px!important;left:auto!important;width:min(380px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;height:auto!important;overflow:auto!important;border:1px solid rgba(145,190,225,.3)!important;border-radius:14px!important;background:#071426!important;box-shadow:0 18px 55px #000a!important
+}
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-head{position:sticky;top:0;z-index:2}
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-body{padding:10px}
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-song,
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-actions,
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-note,
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-form{display:none!important}
+body.performance-mode #chordViewer>.listen-panel.performance-youtube-open .listen-frame{width:100%;aspect-ratio:16/9}
+@media(max-width:600px){body.performance-mode #chordViewer>.listen-panel.performance-youtube-open{top:54px!important;right:8px!important;bottom:104px!important;left:8px!important;width:auto!important;max-width:none!important}}
