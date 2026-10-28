@@ -388,10 +388,24 @@
   let listenRenderToken = 0;
 
   /* ---------- Performance mode for musicians ---------- */
-  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null };
+  const performance = { active: false, playing: false, speed: 28, frame: 0, lastTime: 0, wakeLock: null, imageScale: 1, imageBaseWidth: 0 };
   function performanceScrollTarget() {
     const shell = document.getElementById("chordViewer");
     return shell?.querySelector(".pdf-scroll-area") || shell?.querySelector(".viewer-image-wrap") || null;
+  }
+  function performanceZoom(direction) {
+    const shell = document.getElementById("chordViewer");
+    const image = shell?.querySelector(".viewer-image");
+    if (image) {
+      if (!performance.imageBaseWidth) performance.imageBaseWidth = image.getBoundingClientRect().width || image.naturalWidth;
+      performance.imageScale = Math.max(0.5, Math.min(3, performance.imageScale + direction * 0.2));
+      image.style.maxWidth = "none";
+      image.style.maxHeight = "none";
+      image.style.width = `${Math.round(performance.imageBaseWidth * performance.imageScale)}px`;
+      image.style.height = "auto";
+      return;
+    }
+    shell?.querySelector(direction > 0 ? "[data-zoom-in]" : "[data-zoom-out]")?.click();
   }
   function stopPerformanceScroll() {
     performance.playing = false;
@@ -418,6 +432,16 @@
     if (!shell || shell.classList.contains("hidden")) return;
     performance.active = true;
     performance.playing = false;
+    performance.imageScale = 1;
+    performance.imageBaseWidth = 0;
+    const image = shell.querySelector(".viewer-image");
+    if (image) {
+      image.style.width = "";
+      image.style.maxWidth = "";
+      image.style.maxHeight = "";
+      image.style.height = "";
+      performance.imageBaseWidth = image.getBoundingClientRect().width || image.naturalWidth || 0;
+    }
     document.body.classList.add("performance-mode");
     let controls = document.getElementById("performanceControls");
     if (!controls) {
@@ -449,8 +473,8 @@
         performance.speed = Number(e.target.value);
         controls.querySelector("[data-performance-speed-label]").textContent = `${performance.speed} px/s`;
       });
-      controls.querySelector("[data-performance-zoom-in]").addEventListener("click", () => document.querySelector("#chordViewer [data-zoom-in]")?.click());
-      controls.querySelector("[data-performance-zoom-out]").addEventListener("click", () => document.querySelector("#chordViewer [data-zoom-out]")?.click());
+      controls.querySelector("[data-performance-zoom-in]").addEventListener("click", () => performanceZoom(1));
+      controls.querySelector("[data-performance-zoom-out]").addEventListener("click", () => performanceZoom(-1));
       controls.querySelector("[data-performance-exit]").addEventListener("click", exitPerformanceMode);
     }
     const tab = viewerTabs.find(t => t.id === activeViewerId);
@@ -463,6 +487,13 @@
     stopPerformanceScroll();
     performance.active = false;
     document.body.classList.remove("performance-mode");
+    const image = document.querySelector("#chordViewer .viewer-image");
+    if (image) {
+      image.style.width = "";
+      image.style.maxWidth = "";
+      image.style.maxHeight = "";
+      image.style.height = "";
+    }
     document.getElementById("performanceControls")?.remove();
     try { performance.wakeLock?.release(); } catch (_) {}
     performance.wakeLock = null;
