@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#071426"><title>Saxophone — HGCFBC Chords Library</title><link rel="stylesheet" href="assets/styles.css"></head>
+<body data-page="library" data-category="saxophone">
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">HG</span><span><strong>HGCFBC</strong><small>CHORDS LIBRARY</small></span></a><button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button><nav class="nav-links"><a href="index.html">Home</a><a href="guitar-keyboard.html">Guitar / Keyboard</a><a class="active" href="saxophone.html">Saxophone</a><a class="nav-upload" href="upload.html">＋ Upload</a></nav></header>
+<main class="page-shell">
+  <div class="page-heading"><div><div class="eyebrow"><span class="live-dot"></span> SHARED SONG LIBRARY</div><h1>Saxo<span>phone</span></h1><p>Find the chart you need and get ready to play.</p></div><a class="button button-primary" href="upload.html">＋ Upload a chart</a></div>
+  <section class="library-panel">
+    <div class="library-toolbar"><label class="searchbox"><span>⌕</span><input id="searchInput" type="search" placeholder="Search song or filename…" aria-label="Search files"></label><div class="toolbar-actions"><select id="sortSelect" aria-label="Sort files"><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select><div class="view-switch" aria-label="View mode"><button class="view-btn active" data-view="list" title="List view">☷</button><button class="view-btn" data-view="grid" title="Grid view">▦</button></div></div></div>
+    <div class="library-status"><span id="libraryCount">Loading files…</span><button id="refreshBtn" class="text-button">↻ Refresh</button></div>
+    <div id="libraryMessage" class="message hidden" role="status"></div><div id="fileList" class="file-list"></div>
+    <div class="empty-state hidden" id="emptyState"><div class="empty-icon">♫</div><strong>No chord sheets found</strong><p>Try another search, or upload the first chart for this category.</p><a href="upload.html" class="text-link">Upload a chart ↗</a></div>
+  </section>
+  <p class="page-note">Files are read from the configured GitHub repository. New uploads may take a short time to appear after the site updates.</p>
+</main><footer class="site-footer"><span>HGCFBC CHORDS LIBRARY</span><span>SAXOPHONE</span></footer><script src="assets/config.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="assets/app.js"></script></body></html>
